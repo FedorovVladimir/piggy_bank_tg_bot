@@ -1,11 +1,12 @@
 import asyncio
+import json
 
 import telepot
 from telepot.loop import MessageLoop
 
 from env import TOKEN, MESSAGE_ERROR, MESSAGE_START, KEYBOARD_START, MESSAGE_MENU, KEYBOARD_MENU, MESSAGE_CATEGORIES, \
     MESSAGE_ADD_CATEGORY
-from ruls import get_categories_menu, add_category
+from ruls import get_categories_menu, add_category, get_category_menu
 
 bot = telepot.Bot(TOKEN)
 
@@ -20,7 +21,7 @@ def handle(message):
         message_text = message["text"]
     elif "data" in message:
         chat_id = message["message"]["chat"]["id"]
-        message_text = message["data"]
+        message_text = json.loads(message["data"])['name']
     else:
         chat_id = message["chat"]["id"]
         bot.sendMessage(chat_id, MESSAGE_ERROR)
@@ -36,6 +37,9 @@ def handle(message):
         if message_text == 'add_category':
             state = 'add_category'
             bot.sendMessage(chat_id, MESSAGE_ADD_CATEGORY)
+        if message_text == 'get_category':
+            category = json.loads(message["data"])['data']
+            bot.sendMessage(chat_id, category['name'], reply_markup=get_category_menu(category['id']))
     elif state == 'add_category':
         state = 'normal'
         text = add_category(message_text)
